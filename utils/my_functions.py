@@ -3,8 +3,10 @@ user_data: list[str,str,int] =[]
 def load_data() -> None:
     """
     Load data from a text file and store it in a list of dictionaries.
-    :param: None
-    :return: None
+    Args: 
+        None
+    Returns:
+        None
     """
     print(f'Loading data from database')
     file = open("sandbox_psip\data_text.txt","r",encoding="utf-8")
@@ -42,7 +44,7 @@ def delete_user(nick:str = None)->None:
     Deletes a user from the user_data list based on their nickname.
 
     Args:
-    nick (str): The nickname of the user to be deleted. If None, the user will be prompted to enter a nickname.
+        nick (str): The nickname of the user to be deleted. If None, the user will be prompted to enter a nickname.
 
     Returns:
     None
@@ -78,10 +80,13 @@ def update_user(nick:str = None, name:str = None, posts:int = None)->None:
     Updates user data in the user_data list.
     
     Parameters:
-    nick (str): Nickname of the user to be updated.
-    name (str): New name of the user.
-    posts (int): New number of posts of the user.
+        nick (str): Nickname of the user to be updated.
+        name (str): New name of the user.
+        posts (int): New number of posts of the user.
     
+    Returns:
+        None
+        
     If no parameters are provided, the function prompts the user to enter them.
     """
     
@@ -123,12 +128,14 @@ def help_command() -> None:
     """
     Prints a list of available commands and their usage instructions.
     """
-    print(f'Commands: create, delete, update, list, save, help, exit')
+    print(f'Commands: create, delete, update, list, save, exit, ui')
     print(f'create - create new user can be used with 3 arguments: name, nick, posts')
     print(f'delete - delete user can be used with 1 argument: nick')
     print(f'update - update user can be used with 3 arguments: nick, name, posts')
     print(f'list - list all users')
     print(f'save - save data to database')
+    print(f'ui - run user interface')
+    print(f'exit - exit program')
     print(f'if you want to use command with arguments use space to separate them else you will need to enter them later in program')
 
 
