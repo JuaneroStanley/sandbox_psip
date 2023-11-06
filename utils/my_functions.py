@@ -130,3 +130,23 @@ def help_command() -> None:
     print(f'list - list all users')
     print(f'save - save data to database')
     print(f'if you want to use command with arguments use space to separate them else you will need to enter them later in program')
+
+
+def ui():
+    ui_exit = False
+    while (ui_exit == False):
+        print(f'\nMenu:\n'
+            f'0. Exit\n'
+            f'1. Create user\n'
+            f'2. Delete user\n'
+            f'3. Update user\n'
+            f'4. List all users\n'
+            f'5. Save data to file\n'
+          )
+        match input("Enter function to run: "):
+            case "1": create_user()
+            case "2": delete_user()
+            case "3": update_user()
+            case "4": list_all_users()
+            case "5": save_data()
+            case "0": ui_exit = True

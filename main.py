@@ -23,6 +23,7 @@ while (is_exit == False):
         case "list": list_all_users()
         case "save": save_data()
         case "help": help_command()
+        case "ui": ui()
         case _: print("Unknown command, try help")
 
     
