@@ -1,8 +1,8 @@
-from Data import user_data
+from data import user_data
 class User:
     def __init__(self,name, age, nick):
         self.name = name
-        self.age = age 
+        self.age = age
         self.nick = nick
 
 all_users_list:list[User] = []
