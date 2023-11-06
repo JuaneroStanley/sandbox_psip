@@ -49,12 +49,30 @@ def delete_user(nick:str = None)->None:
     """
     if nick == None:
         nick = input("Enter nick: ")
+    users_to_delete = []
     for user in user_data:
         if user["nick"] == nick:
-            user_data.remove(user)
+            users_to_delete.append(user)
+    if len(users_to_delete) == 0:
+        print(f'User {nick} not found')
+    elif len(users_to_delete) == 1:
+        user_data.remove(users_to_delete[0])
+        print(f'User {nick} deleted')
+    else:
+        print(f'Found {len(users_to_delete)} users with nick {nick}')
+        print(f'0. delete all')
+        for x in range(len(users_to_delete)):
+            print(f'{x+1}. User {users_to_delete[x]["name"]} has {users_to_delete[x]["posts"]} posts')
+        id_delete = input("Enter id of user to delete: ")
+        if (id_delete == "0"):
+            for user in users_to_delete:
+                user_data.remove(user)
+            print(f'All users with nick {nick} deleted')
+        else: 
+            user_data.remove(users_to_delete[int(id_delete)-1])
             print(f'User {nick} deleted')
-    print(f'User {nick} not found')
-    
+        
+         
 def update_user(nick:str = None, name:str = None, posts:int = None)->None:
     """
     Updates user data in the user_data list.
@@ -128,7 +146,7 @@ while (is_exit == False):
         case "delete":
             if len(command) < 2: 
                 delete_user()
-            delete_user(command[1])
+            else: delete_user(command[1])
         case "update":
             if len(command) == 3: update_user(command[1],command[2])
             else: update_user()
@@ -137,4 +155,5 @@ while (is_exit == False):
         case "save": save_data()
         case "help": help_command()
         case _: print("Unknown command, try help")
+
     
