@@ -9,7 +9,7 @@ def load_data() -> None:
         None
     """
     print(f'Loading data from database')
-    file = open("sandbox_psip\data_text.txt","r",encoding="utf-8")
+    file = open("data_text.txt","r",encoding="utf-8")
     x = 0
     for line in file:
         split_line = line[:-1].split(" ")
@@ -91,16 +91,19 @@ def update_user(nick:str = None, name:str = None, posts:int = None)->None:
     """
     
     if nick == None and name == None and posts == None:
-        nick = input("Enter nick: ")
+        nick = input("Enter nick of user to update: ")
+        newnick = input("Enter new nick: ")
         name = input("Enter name: ")
         posts = input("Enter posts: ")
     for user in user_data:
         if user["nick"] == nick:
+            if newnick != None:
+                user["nick"] = newnick
             if name != None:
                 user["name"] = name
             if posts != None:
                 user["posts"] = posts
-            print(f'User {nick} updated')
+            print(f'User {newnick} updated')
             
 def list_all_users() -> None:
     """
@@ -118,7 +121,7 @@ def save_data() -> None:
     """
     
     print(f'Saving data to database')
-    file = open("sandbox_psip\data_text.txt","w",encoding="utf-8")
+    file = open("data_text.txt","w",encoding="utf-8")
     for user in user_data:
         file.write(f'{user["name"]} {user["nick"]} {user["posts"]}\n')
     print(f'Saved {len(user_data)} users')
