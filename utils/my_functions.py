@@ -75,7 +75,7 @@ def delete_user(nick:str = None)->None:
             print(f'User {nick} deleted')
         
          
-def X_update_user(nick:str = None, name:str = None, posts:int = None)->None:
+def update_user(nick:str = None, name:str = None, posts:int = None)->None:
     """
     Updates user data in the user_data list.
     
@@ -161,12 +161,3 @@ def ui():
             case "5": save_data()
             case "0": ui_exit = True
 
-def update_user(user_data: list[dict, dict]) -> None:
-    nick_of_user = input('podaj nick uzytkownika do modyfikacji')
-    print(nick_of_user)
-    for user in user_data:
-        if user['nick'] == nick_of_user:
-            print('Znaleziono !!!')
-            user['name'] = input('podaj nowe imie: ')
-            user['nick'] = input('podaj nowa ksywe: ')
-            user['posts'] = int(input('podaj liczbe postow: '))
