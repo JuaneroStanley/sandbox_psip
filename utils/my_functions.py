@@ -9,7 +9,7 @@ def load_data() -> None:
         None
     """
     print(f'Loading data from database')
-    file = open("sandbox_psip\data_text.txt","r",encoding="utf-8")
+    file = open("data_text.txt","r",encoding="utf-8")
     x = 0
     for line in file:
         split_line = line[:-1].split(" ")
@@ -118,7 +118,7 @@ def save_data() -> None:
     """
     
     print(f'Saving data to database')
-    file = open("sandbox_psip\data_text.txt","w",encoding="utf-8")
+    file = open("data_text.txt","w",encoding="utf-8")
     for user in user_data:
         file.write(f'{user["name"]} {user["nick"]} {user["posts"]}\n')
     print(f'Saved {len(user_data)} users')
