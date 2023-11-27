@@ -1,2 +1,0 @@
-pass: psip
-port: 5432
