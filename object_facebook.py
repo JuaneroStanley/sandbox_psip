@@ -1,9 +1,20 @@
 
 class User:
-    def __init__(self,name, age, nick):
+    def __init__(self,name, nick, posts):
         self.name = name
-        self.age = age
+        self.posts = posts
         self.nick = nick
+        
+    def __str__(self) -> str:
+        return f'Użytkownik {self.nick} ma {self.posts} postów'
+    
+    def __update__(self,to_change:list[str]):
+        if to_change[0] != None:
+            self.name = to_change[0]
+        if to_change[1] != None:
+            self.nick = to_change[2]    
+        if to_change[2] != None:
+            self.posts = to_change[1]
 
 all_users_list:list[User] = []
 isExit = False
@@ -12,8 +23,8 @@ isExit = False
 def add_user():
     new_name = input("Enter name: ")
     new_nick = input("Enter nick: ")
-    new_age = input("Enter age: ")
-    all_users_list.append(User(new_name,new_age,new_nick))
+    new_posts = input("Enter age: ")
+    all_users_list.append(User(new_name,new_nick,new_posts))
 
 while (isExit != True):
     user_input = input("Enter command: ")
@@ -23,7 +34,7 @@ while (isExit != True):
         add_user()
     elif (user_input == "list"):
         for user in all_users_list:
-            print(f'Użytkownik {user.nick} ma {user.age} lat')
+            print(user.__str__())
     else:
         print("Unknown commend")
 
