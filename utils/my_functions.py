@@ -1,3 +1,7 @@
+from bs4 import BeautifulSoup
+import requests
+
+
 user_data: list[str,str,int] =[]
 
 def load_data() -> None:
@@ -126,6 +130,30 @@ def save_data() -> None:
         file.write(f'{user["name"]} {user["nick"]} {user["posts"]}\n')
     print(f'Saved {len(user_data)} users')
     
+
+def get_coordinates_of(city:str)->list[float,float]:
+    """
+    Retrieves the latitude and longitude coordinates of a given city.
+
+    Args:
+        city (str): The name of the city.
+
+    Returns:
+        list[float, float]: A list containing the latitude and longitude coordinates.
+    """
+    adress_url = f'https://pl.wikipedia.org/wiki/{city}'
+    response = requests.get(url=adress_url)
+    latitude = float(BeautifulSoup(response.text, 'html.parser').find_all('span', class_='latitude')[1].text.replace(',', '.')) # .latitude is same as class_='latitude'
+    longitude = float(BeautifulSoup(response.text, 'html.parser').select('.longitude')[1].text.replace(',','.')) # .longitude is same as class_='longitude' 
+    return [latitude,longitude]    
+      
+def coordinates_city() -> None:
+    """
+    Prompts the user to enter a city name and prints the coordinates of the city.
+    """
+    city = input("Enter city: ")
+    city_coord = get_coordinates_of(city)
+    print(f'Coordinates of {city} are {city_coord[0]} {city_coord[1]}')
     
 def help_command() -> None:
     """
@@ -152,6 +180,7 @@ def ui():
             f'3. Update user\n'
             f'4. List all users\n'
             f'5. Save data to file\n'
+            f'6. Get coordinates of city\n'
           )
         match input("Enter function to run: "):
             case "1": create_user()
@@ -159,5 +188,12 @@ def ui():
             case "3": update_user()
             case "4": list_all_users()
             case "5": save_data()
+            case "6": coordinates_city()
             case "0": ui_exit = True
 
+def get_coordinates_of(city:str)->list[float,float]:
+    adress_url = f'https://pl.wikipedia.org/wiki/{city}'
+    response = requests.get(url=adress_url)
+    latitude = float(BeautifulSoup(response.text, 'html.parser').find_all('span', class_='latitude')[1].text.replace(',', '.')) # .latitude is same as class_='latitude'
+    longitude = float(BeautifulSoup(response.text, 'html.parser').select('.longitude')[1].text.replace(',','.')) # .longitude is same as class_='longitude' 
+    return [latitude,longitude]
