@@ -10,9 +10,7 @@ def get_coordinates_of(city:str)->list[float,float]:
     return [latitude,longitude]
 cities = ["Warszawa","Kraków","Gdańsk","Bydgoszcz"]
 
-map = folium.Map(location=get_coordinates_of("Warszawa"),
-                 tiles="OpenStreetMap", 
-                 zoom_start=6)
+
 for city in cities:
     folium.Marker(location=get_coordinates_of(city), 
               popup="My tu a ty??????"

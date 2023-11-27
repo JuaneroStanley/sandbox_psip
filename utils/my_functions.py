@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import folium
 
 
 user_data: list[str,str,int] =[]
@@ -17,7 +18,7 @@ def load_data() -> None:
     x = 0
     for line in file:
         split_line = line[:-1].split(" ")
-        user_data.append({"name":split_line[0],"nick":split_line[1],"posts":split_line[2]})
+        user_data.append({"name":split_line[0],"nick":split_line[1],"posts":split_line[2],"city":split_line[3]})
         x += 1
     print(f'Loaded {x} users')
     
@@ -115,7 +116,7 @@ def list_all_users() -> None:
     """
     print(f'List of all users:')
     for user in user_data:
-        print(f'User {user["nick"]} has {user["posts"]} posts')
+        print(f'User {user["nick"]} has {user["posts"]} posts and is from {user["city"]}')
 
 def save_data() -> None:
     """
@@ -127,7 +128,7 @@ def save_data() -> None:
     print(f'Saving data to database')
     file = open("data_text.txt","w",encoding="utf-8")
     for user in user_data:
-        file.write(f'{user["name"]} {user["nick"]} {user["posts"]}\n')
+        file.write(f'{user["name"]} {user["nick"]} {user["posts"]} {user["city"]}\n')
     print(f'Saved {len(user_data)} users')
     
 
@@ -147,14 +148,33 @@ def get_coordinates_of(city:str)->list[float,float]:
     longitude = float(BeautifulSoup(response.text, 'html.parser').select('.longitude')[1].text.replace(',','.')) # .longitude is same as class_='longitude' 
     return [latitude,longitude]    
       
-def coordinates_city() -> None:
+def generate_map_for_user() -> None:
     """
     Prompts the user to enter a city name and prints the coordinates of the city.
     """
-    city = input("Enter city: ")
-    city_coord = get_coordinates_of(city)
-    print(f'Coordinates of {city} are {city_coord[0]} {city_coord[1]}')
+    nick = input("Enter user nick: ")
+    city = ""
+    for user in user_data:
+        if user["nick"] == nick:
+            city = user["city"]
+    if city != "":
+        get_map_of(city,nick).save(f'{nick}_mapka.html')
     
+def get_map_of(city:list[float,float],user_name:str)->None:
+    map = folium.Map(location=get_coordinates_of(city),
+                 tiles="OpenStreetMap", 
+                 zoom_start=6)
+    folium.Marker(location=get_coordinates_of(city),
+                  popup=f'Tu mieszka {user_name}').add_to(map) 
+    return map 
+
+def generate_map_of_all_users():
+    map = folium.Map(location=[52.0, 19.0], zoom_start=6)
+    for user in user_data:
+        folium.Marker(location=get_coordinates_of(user["city"]),
+                  popup=f'Tu mieszka {user["nick"]}').add_to(map)
+    map.save("all_users.html")
+
 def help_command() -> None:
     """
     Prints a list of available commands and their usage instructions.
@@ -180,7 +200,8 @@ def ui():
             f'3. Update user\n'
             f'4. List all users\n'
             f'5. Save data to file\n'
-            f'6. Get coordinates of city\n'
+            f'6. Generate map for user\n'
+            f'7. Generate map for all users\n'
           )
         match input("Enter function to run: "):
             case "1": create_user()
@@ -188,6 +209,7 @@ def ui():
             case "3": update_user()
             case "4": list_all_users()
             case "5": save_data()
-            case "6": coordinates_city()
+            case "6": generate_map_for_user()
+            case "7": generate_map_of_all_users()
             case "0": ui_exit = True
 

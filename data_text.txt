@@ -1,8 +1,8 @@
-Stanislaw Juanero 42
-Oliver Szymannski 12
-Bartosz Baran 123
-Tomasz Koc 34
-Marek WEIS 555
-Piotr Suchy 42
-Szymon Kępka 12
-Agata Agatka532 2
+Stanislaw Juanero 42 Warszawa
+Oliver Szymannski 12 Bydgoszcz
+Bartosz Baran 123 Kraków
+Tomasz Koc 34 Mińsk_Mazowiecki
+Marek WEIS 555 Toruń
+Piotr Suchy 42 Katowice
+Szymon Kępka 12 Sopot
+Agata Agatka532 2 Rembertów
