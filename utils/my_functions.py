@@ -169,7 +169,7 @@ def get_map_of(city:list[float,float],user_name:str)->None:
     return map 
 
 def generate_map_of_all_users():
-    map = folium.Map(location=[52.0, 19.0], zoom_start=6)
+    map = folium.Map(location=[53, 19.0], zoom_start=6)
     for user in user_data:
         folium.Marker(location=get_coordinates_of(user["city"]),
                   popup=f'Tu mieszka {user["nick"]}').add_to(map)
