@@ -23,7 +23,7 @@ isExit = False
 def add_user():
     new_name = input("Enter name: ")
     new_nick = input("Enter nick: ")
-    new_posts = input("Enter age: ")
+    new_posts = input("Enter posts: ")
     all_users_list.append(User(new_name,new_nick,new_posts))
 
 while (isExit != True):
