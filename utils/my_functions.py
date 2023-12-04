@@ -158,9 +158,9 @@ def generate_map_for_user() -> None:
         if user["nick"] == nick:
             city = user["city"]
     if city != "":
-        get_map_of(city,nick).save(f'{nick}_mapka.html')
+        get_map_of_one_user(city,nick).save(f'{nick}_mapka.html')
     
-def get_map_of(city:list[float,float],user_name:str)->None:
+def get_map_of_one_user(city:list[float,float],user_name:str)->None:
     map = folium.Map(location=get_coordinates_of(city),
                  tiles="OpenStreetMap", 
                  zoom_start=6)
@@ -213,3 +213,31 @@ def ui():
             case "7": generate_map_of_all_users()
             case "0": ui_exit = True
 
+
+
+def no_ui():
+    is_exit = False       
+    while (is_exit == False):
+        command = input("Enter command: ").split(" ")
+        match command[0]:
+            case "exit": is_exit = True
+            case "create":
+                if len(command) == 4: create_user(command[1],command[2],command[3])
+                elif len(command) == 3: create_user(command[1],command[2])
+                else: create_user()
+                
+            case "delete":
+                if len(command) < 2: 
+                    delete_user()
+                else: delete_user(command[1])
+            case "update":
+                if len(command) == 3: update_user(command[1],command[2])
+                else: update_user()
+                update_user(command[1],command[2],command[3])
+            case "list": list_all_users()
+            case "save": save_data()
+            case "help": help_command()
+            case "ui": ui()
+            case _: print("Unknown command, try help")
+
+    
