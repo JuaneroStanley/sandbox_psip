@@ -41,7 +41,7 @@ def list_all_users():
     sql_query_1 = sqlalchemy.text("SELECT * FROM mytable ORDER BY id ASC")
     print(connection.execute(sql_query_1).fetchall())
     
-list_all_users()
+# list_all_users()
 
 #connection.execute(sql_query_1)
 #connection.commit()
@@ -49,7 +49,6 @@ list_all_users()
 #session = Session()
 #sql_query_2 = sqlalchemy.text("* FROM mytable")
 #print(session.query(sql_query_2).all())
-
 
 
 
