@@ -2,16 +2,30 @@ from utils.my_functions import *
 import folium
 import sqlalchemy
 class User:
-    def __init__(self, nick, connection):
-        self.nick = nick
-        self.name = get_user_name(connection)
-        self.age = get_user_age(connection)
-        
+
 
         
     def __str__(self) -> str:
         return f'Użytkownik {self.nick} z {self.residence} ma {self.posts} postów'
     
+    def get_user_name(connection):
+        pass
+    
+    def get_user_age(connection):
+        pass
+
+    def get_user_posts(connection):
+        pass
+    
+    def get_user_residence(connection):
+        pass
+    
+    def __init__(self, nick, connection):
+        self.nick = nick
+        self.name = get_user_name(connection)
+        self.age = get_user_age(connection)
+        self.posts = get_user_posts(connection)
+        self.residence = get_user_residence(connection)
     
     def __update__(self,to_change:list[str]):
         if to_change[0] != None:
