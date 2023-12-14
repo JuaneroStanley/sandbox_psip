@@ -160,7 +160,7 @@ def generate_map_for_user() -> None:
     if city != "":
         get_map_of_one_user(city,nick).save(f'{nick}_mapka.html')
     
-def get_map_of_one_user(city:list[float,float],user_name:str)->None:
+def get_map_of_one_user(city:str,user_name:str)->None:
     map = folium.Map(location=get_coordinates_of(city),
                  tiles="OpenStreetMap", 
                  zoom_start=6)
@@ -174,6 +174,21 @@ def generate_map_of_all_users():
         folium.Marker(location=get_coordinates_of(user["city"]),
                   popup=f'Tu mieszka {user["nick"]}').add_to(map)
     map.save("all_users.html")
+    
+def get_weather_for_city(name_of_city: str):
+    """
+    Retrieves weather information for a given city.
+
+    Args:
+        name_of_city (str): The name of the city.
+
+    Returns:
+        dict: A dictionary containing weather information for the city.
+    """
+    formated_city = name_of_city.replace(" ", "").lower().strip()
+    url_weather = f"https://danepubliczne.imgw.pl/api/data/synop/station/{formated_city}"
+    return requests.get(url=url_weather).json()
+
 
 def help_command() -> None:
     """
