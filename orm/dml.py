@@ -102,3 +102,16 @@ def is_unique_nick(session, user_nick:str)->bool:
     else:
         return False
     
+def user_from_nick(session, user_nick:str)->User:
+    """
+    Retrieves a user object from the database using the provided nickname.
+
+    Args:
+        session (Session): The SQLAlchemy session object.
+        user_nick (str): The nickname of the user.
+
+    Returns:
+        User: The user object.
+    """
+    result = session.query(User).filter(User.nick == user_nick).first()
+    return result
