@@ -1,7 +1,5 @@
-from bs4 import BeautifulSoup
-import requests
-import folium
 from orm.dml import *
+import requests
 
 engine = create_engine()
 
@@ -90,7 +88,6 @@ def update_user():
         user.posts = posts
         session.commit()
         
-
 def list_users():
     with create_session(engine) as session:
         print("List of all users:")
@@ -98,11 +95,24 @@ def list_users():
             oneHalf = f'{i} {user.nick} |'.ljust(20)
             print(f'{oneHalf} {user.name} has {user.posts} posts and is from {user.city}')
 
-
 def generate_map_of_all_users():
     return None
 
 def get_weather_for_user():
-    return None
+    with create_session(engine) as session:
+        nick = input("Enter user nick: ").strip()
+        user = user_from_nick(session,nick)
+        if user is None:
+            print("User not found")
+            return
+        formated_city = format_city_name(user.city)
+        url_weather = f"https://danepubliczne.imgw.pl/api/data/synop/station/{formated_city}"        
+        weather_dict =  requests.get(url=url_weather).json()
+        if weather_dict["temperatura"] == None:
+            print(f'Nie znaleziono pogody dla {user.city}')
+            return
+        print(f'Pogoda dla {user.city}: {weather_dict["temperatura"]}°C, {weather_dict["cisnienie"]}hPa, {weather_dict["wilgotnosc_wzgledna"]}% wilgotności względnej, {weather_dict["suma_opadu"]}mm suma opadów. Wiatr {weather_dict["kierunek_wiatru"]} z prędkością {weather_dict["predkosc_wiatru"]}m/s ')
 
-
+def format_city_name(city:str)->str:
+    polskie_znaki_dict = {"ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ź":"z","ż":"z"} 
+    return ''.join(polskie_znaki_dict.get(char, char) for char in city.replace(" ", "").lower().strip())

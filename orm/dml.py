@@ -1,9 +1,9 @@
 import sqlalchemy
-from ddl import User
+from orm.ddl import User
 import os
 import dotenv
 from sqlalchemy.orm import sessionmaker
-from base import Base
+from orm.base import Base
 
 
 env = dotenv.load_dotenv('./.env')
