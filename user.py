@@ -5,9 +5,6 @@ import sqlalchemy
 
 
 class User:
-
-
-        
     def __str__(self) -> str:
         return f'Użytkownik {self.nick} z {self.location} ma {self.posts} postów'
     
