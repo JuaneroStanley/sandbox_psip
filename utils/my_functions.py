@@ -189,6 +189,13 @@ def get_weather_for_city(name_of_city: str):
     url_weather = f"https://danepubliczne.imgw.pl/api/data/synop/station/{formated_city}"
     return requests.get(url=url_weather).json()
 
+def alchemy_1dcursor_to_string(cursor):
+    list = [r for r in cursor]
+    for character in list:
+        string = (character[0])
+    return string
+
+
 
 def help_command() -> None:
     """
