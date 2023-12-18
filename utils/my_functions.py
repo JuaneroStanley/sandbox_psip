@@ -3,6 +3,7 @@ import requests
 import folium
 from orm.dml import *
 
+engine = create_engine()
 
 def display_menu():
     print(f'Menu:\n'
@@ -33,7 +34,7 @@ def display_menu():
             print("not a walid choice. enter a number from 0 to 6")
 
 def add_user():
-    with create_session(create_engine()) as session:
+    with create_session(engine) as session:
         name = input("Enter user name: ")
         while True:
             nick = input("Enter user nick: ")
@@ -51,7 +52,7 @@ def add_user():
         create_user(session,nick,name,posts,city)    
 
 def delete_user():
-    with create_session(create_engine()) as session:
+    with create_session(engine) as session:
         nick = input("Enter user nick: ").strip()
         user = user_from_nick(session,nick)
         if user is None:
@@ -61,7 +62,7 @@ def delete_user():
         session.commit()
 
 def update_user():
-    with create_session(create_engine()) as session:
+    with create_session(engine) as session:
         nick = input("Enter user nick: ").strip()
         user = user_from_nick(session,nick)
         if user is None:
@@ -91,7 +92,12 @@ def update_user():
         
 
 def list_users():
-    return None
+    with create_session(engine) as session:
+        print("List of all users:")
+        for user , i in session.query(User).all():
+            oneHalf = f'{i} {user.nick} |'.ljust(20)
+            print(f'{oneHalf} {user.name} has {user.posts} posts and is from {user.city}')
+
 
 def generate_map_of_all_users():
     return None
