@@ -51,7 +51,14 @@ def add_user():
         create_user(session,nick,name,posts,city)    
 
 def delete_user():
-    return None
+    with create_session(create_engine()) as session:
+        nick = input("Enter user nick: ").strip()
+        user = user_from_nick(session,nick)
+        if user is None:
+            print("User not found")
+            return
+        session.delete(user)
+        session.commit()
 
 def update_user():
     with create_session(create_engine()) as session:
