@@ -54,7 +54,34 @@ def delete_user():
     return None
 
 def update_user():
-    return None
+    with create_session(create_engine()) as session:
+        nick = input("Enter user nick: ").strip()
+        user = user_from_nick(session,nick)
+        if user is None:
+            print("User not found")
+            return
+        name = input("Enter user name: ")
+        city = input("Enter user city: ")
+        while True:
+            try:
+                posts = input("Enter user posts: ")
+                if posts == "":
+                    break
+                posts = int(posts)
+                break
+            except ValueError:
+                print("Number of posts must be a intiger.")
+        if name == "":
+            name = user.name
+        if city == "":
+            city = user.city
+        if posts == "":
+            posts = user.posts
+        user.name = name
+        user.city = city
+        user.posts = posts
+        session.commit()
+        
 
 def list_users():
     return None
