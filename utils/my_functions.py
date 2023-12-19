@@ -1,265 +1,325 @@
-from bs4 import BeautifulSoup
+import orm.dml as dml
 import requests
+from bs4 import BeautifulSoup
 import folium
 
+is_exit = False
+engine = None
 
-user_data: list[str,str,int] =[]
+def main():
+    init_database_and_connection()
+    while is_exit == False:
+        display_menu()
+    print("Zamykam program")
 
-def load_data() -> None:
+def exit():
+    global is_exit
+    is_exit = True
+    engine.dispose()
+
+
+def init_database_and_connection():
     """
-    Load data from a text file and store it in a list of dictionaries.
-    Args: 
-        None
-    Returns:
-        None
-    """
-    print(f'Loading data from database')
-    file = open("data_text.txt","r",encoding="utf-8")
-    x = 0
-    for line in file:
-        split_line = line[:-1].split(" ")
-        user_data.append({"name":split_line[0],"nick":split_line[1],"posts":split_line[2],"city":split_line[3]})
-        x += 1
-    print(f'Loaded {x} users')
-    
-    
-def create_user(name:str = None, nick:str = None, posts:int = None)->None:
-    """
-    Creates a new user with the given name, nickname, and number of posts.
+    Initializes the database connection and checks if the connection is successful.
 
-    If no arguments are provided, prompts the user to enter the information.
-
-    Args:
-        name (str, optional): The name of the user. Defaults to None.
-        nick (str, optional): The nickname of the user. Defaults to None.
-        posts (int, optional): The number of posts the user has made. Defaults to None.
+    Raises:
+        Exception: If the connection to the database fails.
 
     Returns:
         None
     """
-    if name == None and nick == None and posts == None:
-        name = input("Enter name: ")
-        nick = input("Enter nick: ")
-        posts = input("Enter posts: ")
-    user_data.append({"name":name,"nick":nick,"posts":posts})
-    print(f'User {nick} created')
-    
-def delete_user(nick:str = None)->None:
-    """
-    Deletes a user from the user_data list based on their nickname.
+    global engine
+    try:
+        engine = dml.create_engine()
+        try_con = engine.connect()
+        try_con.close()
+        print("Nawiązano połączenie z bazą danych")
+    except Exception: 
+        print("Nie udało się nawiązać połączenia z bazą danych")
+        exit()
+        return
+    dml.create_table(engine)
 
-    Args:
-        nick (str): The nickname of the user to be deleted. If None, the user will be prompted to enter a nickname.
+def display_menu():
+    print(f'Menu:\n'
+            f'1. Dodaj użytkownika\n'
+            f'2. Usuń użytkownika\n'
+            f'3. Zaktualizuj użytkownika\n'
+            f'4. Lista wszystkich użytkowników\n'
+            f'5. Stwórz mapę dla użytkownika/ów\n'
+            f'6. Podaj pogodę dla użytkownika\n'
+            f'0. Wyjdź\n')
+    choice = input("Podaj numer opcji: ").strip()
+    match choice:
+        case "1":
+            add_user()
+        case "2":
+            delete_user()
+        case "3":
+            update_user()
+        case "4":
+            list_users()
+        case "5":
+            option_generate_map()
+        case "6":
+            get_weather_for_user()
+        case "0":
+            exit()
+        case "reset":
+            dml.reset_table(engine)
+        case _:
+            print("Wybór może być tylko z zakresu 0-6")
+
+def add_user():
+    """
+    Adds a new user to the system.
+
+    Prompts the user to enter the user's name, nick, city, and number of posts.
+    Checks if the nick is unique and prompts the user to enter a different nick if it is already taken.
+    If the number of posts is not an integer, prompts the user to enter a valid integer.
+    Calls function to add the user into the database.
+    """
+    global engine
+    with dml.create_session(engine) as session:
+        name = input("Enter user name: ")
+        while True:
+            nick = input("Enter user nick: ")
+            if dml.is_unique_nick(session,nick):
+                break
+            else:
+                print("Nick jest już w bazie danych. Wpisz unikalną wartość.")
+        city = input("Wpisz miasto użytkownika: ")
+        while True:
+            try:
+                posts = int(input("Wpisz liczbę postów: "))
+                break
+            except ValueError:
+                print("Liczba postów musi być liczbą całkowitą.")
+        dml.create_user(session,nick,name,posts,city)
+
+def delete_user():
+    """
+    Deletes a user from the database.
+
+    This function prompts the user to enter the user's nickname, searches for the user in the database,
+    and deletes the user if found. If the user is not found, it prints a message and returns.
+
+    Parameters:
+    None
 
     Returns:
     None
     """
-    if nick == None:
-        nick = input("Enter nick: ")
-    users_to_delete = []
-    for user in user_data:
-        if user["nick"] == nick:
-            users_to_delete.append(user)
-    if len(users_to_delete) == 0:
-        print(f'User {nick} not found')
-    elif len(users_to_delete) == 1:
-        user_data.remove(users_to_delete[0])
-        print(f'User {nick} deleted')
-    else:
-        print(f'Found {len(users_to_delete)} users with nick {nick}')
-        print(f'0. delete all')
-        for x in range(len(users_to_delete)):
-            print(f'{x+1}. User {users_to_delete[x]["name"]} has {users_to_delete[x]["posts"]} posts')
-        id_delete = input("Enter id of user to delete: ")
-        if (id_delete == "0"):
-            for user in users_to_delete:
-                user_data.remove(user)
-            print(f'All users with nick {nick} deleted')
-        else: 
-            user_data.remove(users_to_delete[int(id_delete)-1])
-            print(f'User {nick} deleted')
-        
-         
-def update_user(nick:str = None, name:str = None, posts:int = None)->None:
+    global engine
+    with dml.create_session(engine) as session:
+        nick = input("Wpisz nick użytkownika do usunięcia: ").strip()
+        user = dml.user_from_nick(session,nick)
+        if user is None:
+            print("Nieznaleziono użytkownika o podanym nicku.")
+            return
+        session.delete(user)
+        session.commit()
+
+def update_user():
     """
-    Updates user data in the user_data list.
-    
+    Updates the information of a user in the database.
+
+    Prompts the user to enter the user's nick, name, city, and number of posts.
+    If the user is found in the database, their information is updated accordingly.
+    If the user is not found, a message is printed and the function returns.
+
     Parameters:
-        nick (str): Nickname of the user to be updated.
-        name (str): New name of the user.
-        posts (int): New number of posts of the user.
+    None
+
+    Returns:
+    None
+    """
+    global engine
+    with dml.create_session(engine) as session:
+        nick = input("Wpisz nick użytkownika: ").strip()
+        user = dml.user_from_nick(session,nick)
+        if user is None:
+            print("Użytkownik o podanym nicku nie istnieje.")
+            return
+        name = input("Wpisz imię użytkownika: ")
+        city = input("Wpisz miasto użytkownika: ")
+        while True:
+            try:
+                posts = input("Wpisz liczbę postów: ")
+                if posts == "":
+                    break
+                posts = int(posts)
+                break
+            except ValueError:
+                print("Liczba postów musi być liczbą całkowitą.")
+        if name == "":
+            name = user.name
+        if city == "":
+            city = user.city
+        if posts == "":
+            posts = user.posts
+        try:
+            user.name = name
+            user.city = city
+            user.posts = posts
+            session.commit()
+        except:
+            session.rollback()
+            print("Błąd przy aktualizacji użytkownika. Czy struktura tabeli jest poprawna?\nSpróbuj wykonać reset bazy danych komendą 'reset' w menu.")
+        
+def list_users():
+    """
+    Prints a list of all users with their information.
+    """
+    global engine
+    with dml.create_session(engine) as session:
+        try:
+            users = session.query(dml.User).all()
+        except:
+            print("Błąd przy wyświetlaniu użytkowników. Czy struktura tabeli jest poprawna?.\nSpróbuj wykonać reset bazy danych komendą 'reset' w menu.")
+            return
+        if users == None or len(users) == 0:
+            print("Brak użytkowników w bazie danych\n")
+            return
+        print("Lista wszystkich użytkowników:")
+        for user in users:
+                oneHalf = f'{user.nick}'.ljust(20)
+                print(f'{oneHalf}| {user.name} ma {user.posts} postów i pochodzi z {user.city}')
+            
+
+def option_generate_map():
+    """
+    Prompts the user to choose whether to generate a map for a single user or for all users.
+    """
+    print("1. Wygeneruj mapę dla jednego użytkownika\n"
+          "2. Wygeneruj mapę dla wszystkich użytkowników\n"
+          "0. Powrót do menu głównego\n")
+    choice = input("Podaj numer opcji: ").strip()
+    match choice:
+        case "1":
+            generate_map_for_user()
+        case "2":
+            generate_map_of_all_users()
+        case "0":
+            return
+        case _:
+            print("Wybór może być tylko z zakresu 0-2")
+
+
+def generate_map_for_user() -> None:
+    """
+    Generates a map for a user based on their city and nickname.
+    Prompts the user to enter their nickname, retrieves the user's information from the database,
+    and generates a map using the user's city and nickname. The generated map is saved as an HTML file.
+    """
+    global engine
+    with dml.create_session(engine) as session:
+        nick = input("Wpisz nick użytkownika do wygenerowania mapy: ").strip()
+        user = dml.user_from_nick(session, nick)
+        if user is None:
+            print("Użytkownik o podanym nicku nie istnieje.")
+            return
+        get_map_of_one_user(user.city, user.nick).save(f'{user.nick}_mapka.html')
     
+def get_map_of_one_user(city:str,user_name:str)->folium.Map:
+    """
+    Generates a folium map centered around a given city and adds a marker for a user.
+
+    Parameters:
+    city (str): The name of the city.
+    user_name (str): The name of the user.
+
+    Returns:
+    folium.Map: A folium map object.
+    """
+    map = folium.Map(location=get_coordinates_of_location(city),
+                 tiles="OpenStreetMap", 
+                 zoom_start=9)
+    folium.Marker(location=get_coordinates_of_location(city),
+                  popup=f'Tu mieszka {user_name}').add_to(map) 
+    return map
+
+
+def generate_map_of_all_users():
+    """
+    Generates a map of all users' locations and saves it as an HTML file.
+
     Returns:
         None
-        
-    If no parameters are provided, the function prompts the user to enter them.
     """
-    
-    if nick == None and name == None and posts == None:
-        nick = input("Enter nick of user to update: ")
-        newnick = input("Enter new nick: ")
-        name = input("Enter name: ")
-        posts = input("Enter posts: ")
-    for user in user_data:
-        if user["nick"] == nick:
-            if newnick != None:
-                user["nick"] = newnick
-            if name != None:
-                user["name"] = name
-            if posts != None:
-                user["posts"] = posts
-            print(f'User {newnick} updated')
+    global engine
+    with dml.create_session(engine) as session:
+        map = folium.Map(location=[53, 19.0], tiles='OpenStreetMap', zoom_start=7)
+        all_users = session.query(dml.User).all()
+        for user in all_users:
+            location = get_coordinates_of_location(user.city)
+            if location[0] is None:
+                continue
+            folium.Marker(location=location,
+                          popup=f'Tu mieszka {user.name} ({user.nick})').add_to(map)
+        map.save("all_users_map.html")
+
+def get_coordinates_of_location(location: str) -> list[float, float]:
+    """
+    Retrieves the latitude and longitude coordinates of a given location.
+
+    Args:
+        location (str): The name of the location.
+
+    Returns:
+        list[float, float]: A list containing the latitude and longitude coordinates of the location.
+                            If the coordinates cannot be found, [None, None] is returned.
+    """
+    formatted_location = location.replace(" ", "_")
+    adress_url = f'https://pl.wikipedia.org/wiki/{formatted_location}'
+    response = requests.get(url=adress_url)
+    try:
+        latitude = float(BeautifulSoup(response.text, 'html.parser').find_all('span', class_='latitude')[1].text.replace(',', '.'))
+        longitude = float(BeautifulSoup(response.text, 'html.parser').select('.longitude')[1].text.replace(',', '.'))
+    except IndexError:
+        return [None, None]
+    return [latitude, longitude]
+
+def get_weather_for_user():
+    """
+    Retrieves weather information for a user's city.
+
+    This function prompts the user to enter their nickname, retrieves the user's city from the database,
+    and then fetches the weather data for that city from an API. The weather information is then printed
+    to the console.
+
+    Raises:
+        KeyError: If the weather data for the user's city is not available.
+
+    Returns:
+        None
+    """
+    global engine
+    with dml.create_session(engine) as session:
+        nick = input("Wpisz nick użytkownika do uzyskania pogody: ").strip()
+        user = dml.user_from_nick(session,nick)
+        if user is None:
+            print("Użytkownik o podanym nicku nie istnieje.")
+            return
+        formated_city = format_city_for_weather(user.city)
+        url_weather = f"https://danepubliczne.imgw.pl/api/data/synop/station/{formated_city}"        
+        weather_dict =  requests.get(url=url_weather).json()
+        try:
+            print(f'Pogoda dla {user.city}: {weather_dict["temperatura"]}°C, {weather_dict["cisnienie"]}hPa, {weather_dict["wilgotnosc_wzgledna"]}% wilgotności względnej, {weather_dict["suma_opadu"]}mm suma opadów. Wiatr {weather_dict["kierunek_wiatru"]} z prędkością {weather_dict["predkosc_wiatru"]}m/s ')
+        except KeyError:
+            print(f"Brak pogody dla {user.city}")
             
-def list_all_users() -> None:
+def format_city_for_weather(city:str)->str:
     """
-    Prints a list of all users and their number of posts.
-    """
-    print(f'List of all users:')
-    for user in user_data:
-        print(f'User {user["nick"]} has {user["posts"]} posts and is from {user["city"]}')
-
-def save_data() -> None:
-    """
-    Saves user data to a text file.
-
-    The function opens a file named 'data_text.txt' and writes the name, nickname, and number of posts for each user in the user_data list.
-    """
-    
-    print(f'Saving data to database')
-    file = open("data_text.txt","w",encoding="utf-8")
-    for user in user_data:
-        file.write(f'{user["name"]} {user["nick"]} {user["posts"]} {user["city"]}\n')
-    print(f'Saved {len(user_data)} users')
-    
-
-def get_coordinates_of(city:str)->list[float,float]:
-    """
-    Retrieves the latitude and longitude coordinates of a given city.
+    Formats the city name for weather API by removing spaces, converting to lowercase, and replacing Polish characters with their ASCII equivalents.
 
     Args:
         city (str): The name of the city.
 
     Returns:
-        list[float, float]: A list containing the latitude and longitude coordinates.
+        str: The formatted city name.
     """
-    adress_url = f'https://pl.wikipedia.org/wiki/{city}'
-    response = requests.get(url=adress_url)
-    latitude = float(BeautifulSoup(response.text, 'html.parser').find_all('span', class_='latitude')[1].text.replace(',', '.')) # .latitude is same as class_='latitude'
-    longitude = float(BeautifulSoup(response.text, 'html.parser').select('.longitude')[1].text.replace(',','.')) # .longitude is same as class_='longitude' 
-    return [latitude,longitude]    
-      
-def generate_map_for_user() -> None:
-    """
-    Prompts the user to enter a city name and prints the coordinates of the city.
-    """
-    nick = input("Enter user nick: ")
-    city = ""
-    for user in user_data:
-        if user["nick"] == nick:
-            city = user["city"]
-    if city != "":
-        get_map_of_one_user(city,nick).save(f'{nick}_mapka.html')
-    
-def get_map_of_one_user(city:str,user_name:str)->None:
-    map = folium.Map(location=get_coordinates_of(city),
-                 tiles="OpenStreetMap", 
-                 zoom_start=6)
-    folium.Marker(location=get_coordinates_of(city),
-                  popup=f'Tu mieszka {user_name}').add_to(map) 
-    return map 
-
-def generate_map_of_all_users():
-    map = folium.Map(location=[53, 19.0], zoom_start=6)
-    for user in user_data:
-        folium.Marker(location=get_coordinates_of(user["city"]),
-                  popup=f'Tu mieszka {user["nick"]}').add_to(map)
-    map.save("all_users.html")
-    
-def get_weather_for_city(name_of_city: str):
-    """
-    Retrieves weather information for a given city.
-
-    Args:
-        name_of_city (str): The name of the city.
-
-    Returns:
-        dict: A dictionary containing weather information for the city.
-    """
-    formated_city = name_of_city.replace(" ", "").lower().strip()
-    url_weather = f"https://danepubliczne.imgw.pl/api/data/synop/station/{formated_city}"
-    return requests.get(url=url_weather).json()
-
-def alchemy_1dcursor_to_string(cursor):
-    list = [r for r in cursor]
-    for character in list:
-        string = (character[0])
-    return string
+    polskie_znaki_dict = {"ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ź":"z","ż":"z"} 
+    return ''.join(polskie_znaki_dict.get(char, char) for char in city.replace(" ", "").lower())
 
 
-
-def help_command() -> None:
-    """
-    Prints a list of available commands and their usage instructions.
-    """
-    print(f'Commands: create, delete, update, list, save, exit, ui')
-    print(f'create - create new user can be used with 3 arguments: name, nick, posts')
-    print(f'delete - delete user can be used with 1 argument: nick')
-    print(f'update - update user can be used with 3 arguments: nick, name, posts')
-    print(f'list - list all users')
-    print(f'save - save data to database')
-    print(f'ui - run user interface')
-    print(f'exit - exit program')
-    print(f'if you want to use command with arguments use space to separate them else you will need to enter them later in program')
-
-
-def ui():
-    ui_exit = False
-    while (ui_exit == False):
-        print(f'\nMenu:\n'
-            f'0. Exit\n'
-            f'1. Create user\n'
-            f'2. Delete user\n'
-            f'3. Update user\n'
-            f'4. List all users\n'
-            f'5. Save data to file\n'
-            f'6. Generate map for user\n'
-            f'7. Generate map for all users\n'
-          )
-        match input("Enter function to run: "):
-            case "1": create_user()
-            case "2": delete_user()
-            case "3": update_user()
-            case "4": list_all_users()
-            case "5": save_data()
-            case "6": generate_map_for_user()
-            case "7": generate_map_of_all_users()
-            case "0": ui_exit = True
-
-
-
-def no_ui():
-    is_exit = False       
-    while (is_exit == False):
-        command = input("Enter command: ").split(" ")
-        match command[0]:
-            case "exit": is_exit = True
-            case "create":
-                if len(command) == 4: create_user(command[1],command[2],command[3])
-                elif len(command) == 3: create_user(command[1],command[2])
-                else: create_user()
-                
-            case "delete":
-                if len(command) < 2: 
-                    delete_user()
-                else: delete_user(command[1])
-            case "update":
-                if len(command) == 3: update_user(command[1],command[2])
-                else: update_user()
-                update_user(command[1],command[2],command[3])
-            case "list": list_all_users()
-            case "save": save_data()
-            case "help": help_command()
-            case "ui": ui()
-            case _: print("Unknown command, try help")
-
-    
