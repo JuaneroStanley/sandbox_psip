@@ -43,7 +43,7 @@ def create_session(engine: sqlalchemy.engine.Engine)-> sqlalchemy.orm.Session:
     return session
 
 
-def create_tables(engine: sqlalchemy.engine.Engine)-> None : 
+def create_table(engine: sqlalchemy.engine.Engine)-> None : 
     """
     Create tables in the database if they don't exist or drop and create if their structure has changed.
 
@@ -57,14 +57,6 @@ def create_tables(engine: sqlalchemy.engine.Engine)-> None :
     if User.__tablename__ not in inspector.get_table_names():
         Base.metadata.create_all(engine)
         return
-    else:
-        meta = sqlalchemy.MetaData()
-        meta.reflect(bind=engine)
-        table = meta.tables[User.__tablename__]
-        is_same_structure = all(column.name in table.columns and isinstance(column.type, type(table.columns[column.name].type)) for column in User.__table__.columns)
-        if not is_same_structure:
-            Base.metadata.drop_all(engine)
-            Base.metadata.create_all(engine)
         
 def create_user(session, user_nick:str, user_name:str, user_posts:int, user_city:str)->None:
     """
@@ -81,10 +73,13 @@ def create_user(session, user_nick:str, user_name:str, user_posts:int, user_city
         User: The newly created user object.
     """
     user = User(nick=user_nick, name=user_name, posts=user_posts, city=user_city)
-    session.add(user)
-    session.commit()
-    return user
-
+    try:
+        session.add(user)
+        session.commit()
+    except:
+        session.rollback()
+        print("Błąd przy dodawaniu użytkownika do bazy danych. Czy struktura tabeli jest poprawna?\nSpróbuj wykonać reset bazy danych komendą 'reset' w menu.")
+        
 def is_unique_nick(session, user_nick:str)->bool:
     """
     Checks if the provided nickname is unique.
@@ -113,5 +108,20 @@ def user_from_nick(session, user_nick:str)->User:
     Returns:
         User: The user object.
     """
-    result = session.query(User).filter(User.nick == user_nick).first()
+    try:
+        result = session.query(User).filter(User.nick == user_nick).first()
+    except:
+        print("Błąd przy pobieraniu użytkownika z bazy danych. Czy struktura tabeli jest poprawna?\nSpróbuj wykonać reset bazy danych komendą 'reset' w menu.")
+        return None
     return result
+
+def reset_table(engine: sqlalchemy.engine.Engine):
+    """
+    Drops the table and recreates it.
+
+    Returns:
+        None
+    """
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+    return
