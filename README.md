@@ -1,3 +1,0 @@
-# sandbox_psip
-#GEOINFORMATYKA RZĄDZI
-OYEAH

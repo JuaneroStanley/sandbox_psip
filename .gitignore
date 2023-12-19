@@ -164,3 +164,6 @@ cython_debug/
 # End of https://www.gitignore.io/api/visualstudiocode
 
 .env
+
+/.vscode
+/.idea
