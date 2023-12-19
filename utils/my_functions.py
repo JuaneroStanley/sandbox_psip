@@ -19,6 +19,15 @@ def exit():
 
 
 def init_database_and_connection():
+    """
+    Initializes the database connection and checks if the connection is successful.
+
+    Raises:
+        Exception: If the connection to the database fails.
+
+    Returns:
+        None
+    """
     global engine
     try:
         engine = dml.create_engine()
@@ -240,7 +249,7 @@ def generate_map_of_all_users():
     """
     global engine
     with dml.create_session(engine) as session:
-        map = folium.Map(location=[53, 19.0], tiles='OpenStreetMap', zoom_start=6)
+        map = folium.Map(location=[53, 19.0], tiles='OpenStreetMap', zoom_start=7)
         all_users = session.query(dml.User).all()
         for user in all_users:
             location = get_coordinates_of_location(user.city)
