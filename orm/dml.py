@@ -72,8 +72,8 @@ def create_user(session, user_nick:str, user_name:str, user_posts:int, user_city
     Returns:
         User: The newly created user object.
     """
-    user = User(nick=user_nick, name=user_name, posts=user_posts, city=user_city)
     try:
+        user = User(nick=user_nick, name=user_name, posts=user_posts, city=user_city)
         session.add(user)
         session.commit()
     except:

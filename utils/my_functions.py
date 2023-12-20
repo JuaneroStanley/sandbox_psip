@@ -81,9 +81,9 @@ def add_user():
     """
     global engine
     with dml.create_session(engine) as session:
-        name = input("Enter user name: ")
+        name = input("Wprowadż imię: ")
         while True:
-            nick = input("Enter user nick: ")
+            nick = input("Wprowadź nick: ")
             if dml.is_unique_nick(session,nick):
                 break
             else:
@@ -183,7 +183,7 @@ def list_users():
             return
         print("Lista wszystkich użytkowników:")
         for user in users:
-                oneHalf = f'{user.nick}'.ljust(20)
+                oneHalf = f'{user.id} | {user.nick}'.ljust(20)
                 print(f'{oneHalf}| {user.name} ma {user.posts} postów i pochodzi z {user.city}')
             
 
@@ -280,7 +280,7 @@ def get_coordinates_of_location(location: str) -> list[float, float]:
         return [None, None]
     return [latitude, longitude]
 
-def get_weather_for_user():
+def get_weather_for_user()->None:
     """
     Retrieves weather information for a user's city.
 
